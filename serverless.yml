@@ -1,0 +1,79 @@
+service: ${self:custom.name_service}
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: 'arn:aws:dynamodb:${self:custom.regions.code}:*:*'
+
+custom:
+  name_service: 'pakta-reto-select'
+  regions:
+    code: us-east-1
+  table_name: 'vehicle'
+  url_api: 'swapi.py4e.com'
+
+package:
+  exclude:
+    - node_modules/**
+
+functions:
+  getVehicle:
+    handler: controllers/vehicles.getItems
+    events:
+      - http:
+          path: vehicle
+          method: get
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+            allowCredentials: false    
+    environment:
+      LAMBDA_AWS_REGION: ${self:custom.regions.code}
+      LAMBDA_URL_SWAPI : ${self:custom.url_api}
+
+  postVehicle:
+    handler: controllers/vehicles.postItems
+    events:
+      - http:
+          path: vehicle
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+            allowCredentials: false    
+    environment:
+      LAMBDA_AWS_REGION: ${self:custom.regions.code}
+      LAMBDA_URL_SWAPI : ${self:custom.url_api}     
+
+resources:      
+  Resources:
+    #- ${file(resources/dynamodb.yml)}
+    ListTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.table_name}
+        AttributeDefinitions:                              
+          - AttributeName: nombre
+            AttributeType: S    
+          - AttributeName: modelo
+            AttributeType: S              
+        KeySchema:      
+          - AttributeName: nombre
+            KeyType: HASH
+          - AttributeName: modelo
+            KeyType: RANGE        
+        BillingMode: PAY_PER_REQUEST
+
+            

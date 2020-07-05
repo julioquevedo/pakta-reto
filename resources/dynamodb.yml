@@ -1,0 +1,15 @@
+ListTable:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: "fff"
+    AttributeDefinitions:
+      - AttributeName: capacidad_carga
+        AttributeType: S
+      - AttributeName: consumibles
+        AttributeType: S    
+    KeySchema:
+      - AttributeName: capacidad_carga
+        KeyType: HASH
+      - AttributeName: consumibles
+        KeyType: RANGE
+    BillingMode: PAY_PER_REQUEST
